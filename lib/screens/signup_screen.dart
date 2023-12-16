@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+final _formKey =GlobalKey<FormState>();
+
 class SignUp extends StatefulWidget {
   const SignUp({Key? key}) : super(key: key);
 
@@ -13,6 +15,16 @@ class SignUp extends StatefulWidget {
 class _SignUpState extends State<SignUp> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
+  String? validateEmail(String? email){
+    RegExp emailRegex = RegExp(r'^[\w\.-]+@[\w-]+\.\w{2,3}(\.\w{2,3})?$');
+    final isEmailValid = emailRegex.hasMatch(email ?? '');
+    if(!isEmailValid){
+      return 'Vui lòng nhập địa chỉ email hợp lệ';
+    }
+    return null;
+  }
+
   void _signup(BuildContext context) async {
     String email = _emailController.text.trim();
     String password = _passwordController.text.trim();
@@ -45,39 +57,40 @@ class _SignUpState extends State<SignUp> {
           ),
         );
       } catch (e) {
-        //print('Đăng ký thất bại: $e');
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text('Failed'),
-            content: Text('Đăng ký thất bại! '),
-            actions: [
-              TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('OK'))
-            ],
-          ),
-        );
+        print('Đăng ký thất bại: $e');
+        // showDialog(
+        //   context: context,
+        //   builder: (context) => AlertDialog(
+        //     title: Text('Failed'),
+        //     content: Text('Đăng ký thất bại! '),
+        //     actions: [
+        //       TextButton(
+        //           onPressed: () {
+        //             Navigator.of(context).pop();
+        //           },
+        //           child: Text('OK'))
+        //     ],
+        //   ),
+        // );
       }
-    } else {
-      // Hiển thị thông báo lỗi nếu có trường nào đó trống
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('Notice'),
-          content: Text('Vui lòng điền đầy đủ thông tin.'),
-          actions: [
-            TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('OK'))
-          ],
-        ),
-      );
     }
+    // else {
+    //   // Hiển thị thông báo lỗi nếu có trường nào đó trống
+    //   showDialog(
+    //     context: context,
+    //     builder: (context) => AlertDialog(
+    //       title: Text('Notice'),
+    //       content: Text('Vui lòng điền đầy đủ thông tin.'),
+    //       actions: [
+    //         TextButton(
+    //             onPressed: () {
+    //               Navigator.of(context).pop();
+    //             },
+    //             child: Text('OK'))
+    //       ],
+    //     ),
+    //   );
+    // }
   }
 
   @override
@@ -88,56 +101,77 @@ class _SignUpState extends State<SignUp> {
       ),
       body: Padding(
         padding: EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            TextField(
-              controller: _emailController,
-              style: const TextStyle(
-                fontSize: 20,
-                color: Colors.black,
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              TextFormField(
+                controller: _emailController,
+                style: const TextStyle(
+                  fontSize: 20,
+                  color: Colors.black,
+                ),
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.email),
+                  labelText: "Email",
+                  border: OutlineInputBorder()
+                ),
+                keyboardType: TextInputType.emailAddress,
+                validator: validateEmail,
               ),
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.email),
-                labelText: "Email",
+              const SizedBox(
+                height: 16,
               ),
-            ),
-            const SizedBox(
-              height: 16,
-            ),
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              style: const TextStyle(
-                fontSize: 20,
-                color: Colors.black,
+              TextFormField(
+                controller: _passwordController,
+                obscureText: true,
+                obscuringCharacter: "*",
+                style: const TextStyle(
+                  fontSize: 20,
+                  color: Colors.black,
+                ),
+                decoration: const InputDecoration(
+                  labelText: "Password",
+                  prefixIcon: Icon(Icons.lock),
+                  border: OutlineInputBorder()
+                ),
+                //keyboardType: TextInputType.visiblePassword,
+                validator: (value) {
+                  if(value == null || value.isEmpty){
+                    return 'Vui lòng nhập mật khẩu';
+                  }
+                  else if(value.length < 8){
+                    return "Mật khẩu không được ít hơn 8 ký tự";
+                  }
+                  return null;
+                },
               ),
-              decoration: const InputDecoration(
-                labelText: "Password",
-                prefixIcon: Icon(Icons.lock),
+              const SizedBox(
+                height: 16,
               ),
-            ),
-            const SizedBox(
-              height: 16,
-            ),
-            ElevatedButton(
-              onPressed: () => _signup(context),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(Icons.person_add),
-                  SizedBox(
-                    width: 8.0,
-                  ),
-                  Text("Sign Up")
-                ],
+              ElevatedButton(
+                onPressed: () {
+                  _formKey.currentState!.validate();
+                  _signup(context);
+                }, //=> _signup(context),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(Icons.person_add),
+                    SizedBox(
+                      width: 8.0,
+                    ),
+                    Text("Sign Up")
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(
-              height: 16,
-            ),
-          ],
+              const SizedBox(
+                height: 16,
+              ),
+            ],
+          ),
         ),
       ),
     );

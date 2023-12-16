@@ -41,12 +41,12 @@ class _TabsScreenState extends State<TabsScreen> {
     return Scaffold(
       appBar: AppBar(
          title: Text(_pageDetails[_selectedPageIndex]['title']),
-        actions: [
-          IconButton(
-            onPressed: () => _addTask(context),
-            icon: const Icon(Icons.add),
-          )
-        ],
+        // actions: [
+        //   IconButton(
+        //     onPressed: () => _addTask(context),
+        //     icon: const Icon(Icons.add),
+        //   )
+        // ],
       ),
       drawer:  MyDrawer(),
       body: _pageDetails[_selectedPageIndex]['pageName'],
